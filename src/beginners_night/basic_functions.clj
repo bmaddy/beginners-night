@@ -34,6 +34,7 @@
 (* 2 3)
 (/ 6 3)
 (/ 1 3)
+(* 2 (/ 1 3))
 
 ;; keywords
 :foo
@@ -56,6 +57,7 @@
   :fail)
 
 ;; tests
+(= 3 3)
 (= (inc 1) 2)
 (not= (inc 1) 2)
 (= (inc 1) 2 (dec 3)) ;; variadic
@@ -66,24 +68,11 @@
       b 2]
   (+ a b))
 
-;; looping
-(loop [n 0]
-  (println n)
-  (if (< n 10)
-    (recur (inc n))
-    (println "done")))
+;; creating vars
+(def foo :stuff)
+foo
 
 ;; defining functions
-(defn factorial-iter [n]
-  (loop [acc 1
-         i 1]
-    (if (<= i n)
-      (recur (* acc i)
-             (inc i))
-      acc)))
-(factorial-iter 1)
-(factorial-iter 5)
-
 (defn factorial [n]
   (if (= n 1)
     n
@@ -99,6 +88,7 @@
 (my-sum 4 5)
 
 ;; anonymous functions
+(fn [x] (inc (* 3 x)))
 ((fn [x] (inc (* 3 x))) 3)
 (def more-than-tripled (fn [x] (inc (* 3 x))))
 (more-than-tripled 3)
@@ -112,7 +102,24 @@
 (collatz 2)
 (collatz 3)
 (doc iterate)
-(take-while #(not= % 1) (iterate collatz 200))
+(take 15 (iterate collatz 10))
+
+;; looping
+(loop [n 0]
+  (println n)
+  (if (< n 10)
+    (recur (inc n))
+    (println "done")))
+
+(defn factorial-iter [n]
+  (loop [acc 1
+         i 1]
+    (if (<= i n)
+      (recur (* acc i)
+             (inc i))
+      acc)))
+(factorial-iter 1)
+(factorial-iter 5)
 
 ;; getting help
 (use 'clojure.repl)
