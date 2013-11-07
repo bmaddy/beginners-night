@@ -1,11 +1,29 @@
 (ns beginners-night.basic-functions)
 
 ;; download nightcode
+;; nightcode.info
+
+;; this file is here:
+;; https://github.com/bmaddy/beginners-night
 
 ;; determine your ip start up labrepl for people to use
 ;; alternatively, they can install lieningen and clone
 ;; https://github.com/relevance/labrepl.git
 ;; run bin/repl
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ;; basic function invocation
 (inc 4)
