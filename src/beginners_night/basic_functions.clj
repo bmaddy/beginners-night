@@ -1,6 +1,18 @@
 (ns beginners-night.basic-functions
   (:require [clojure.repl :refer :all]))
 
+(comment
+  1. A walk through of the basic functions
+    Should cover at least these:
+      * basic function definitions (more advanced stuff like functions with multiple invoke methods, pre and post conditions will be covered in a different presentation)
+      * defn, fn, #(...), let, do, println, doc, find-doc, source, loop, recur, =, str, +, -, *, /, ->
+      * ns and it's various options
+        * :require (including :refer and :as)
+        * :import
+        * mention :use and that :require/:refer is preferable
+      * mention the docs at clojue.org and clojuredocs.org
+      * show some of these functions in action in a repl)
+
 ;; download nightcode
 ;; nightcode.info
 

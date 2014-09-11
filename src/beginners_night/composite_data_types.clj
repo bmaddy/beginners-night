@@ -1,5 +1,6 @@
-(ns beginners-night.basic-functions
-  (:require [clojure.repl :refer :all]))
+(ns beginners-night.composite-data-types
+  (:require [clojure.repl :refer :all]
+            [clojure.set :as set]))
 
 ;; download nightcode
 ;; nightcode.info
@@ -58,7 +59,9 @@
 [:a :b :c]
 ["a" "b" "c"]
 [1 \a "foo"]
+'(1 2 3)
 (vec '(1 2 3))
+"string"
 (vec "a string")
 
 (first [:a :b :c])
@@ -72,8 +75,12 @@
 ;; O(1)
 (rseq [:a :b :c])
 (conj [:a :b :c] :d)
+
 ;; very fast
-(subvec [1 2 3 4 5] 2 4)
+(def v [:a :b :c :d :e])
+(nth v 2)
+(nth v 4)
+(subvec v 2 4)
 ;; O(1) reversal
 [:a :b]
 (rseq [:a :b])
@@ -81,13 +88,35 @@
 (class (rseq [:a :b]))
 
 ; persistent
-(def a [:a :b :c])
+(def x [:a :b :c])
+x
+(def y x)
+y
+(= x y)
+(identical? x y)
+(def z (conj x :d))
+x
+y
+z
+(= x y)
+(subvec z 0 3)
+(= (subvec z 0 3) y)
+(identical? (subvec z 0 3) y)
+
+(def a '(1 2))
+(def b (conj a 3))
 a
-(def b a)
 b
-(def a (conj a :d))
-a
-b
+(identical? (rest b) a)
+(= (rest b) a)
+
+(= 0.5 1/2)
+(== 0.5 1/2)
+
+
+(= [:foo] [:foo])
+(identical? [:foo] [:foo])
+
 ;;  == vs .equals()
 ;; deep copy vs shallow copy
 ;; structural sharing - https://en.wikipedia.org/wiki/Persistent_data_structure#Trees
@@ -98,6 +127,10 @@ b
 (list 1 2 3)
 '(1 2 3)
 (list* 1 2 3 '(4 5 6))
+(list* :div
+ {:class "stuff"}
+ "content"
+ [[:div] [:div]])
 
 (first '(:a :b :c))
 ;; O(1)
@@ -121,6 +154,8 @@ b
 
 
 ;; sets
+(set [:foo :bar])
+(set "wow")
 (def animals #{:tiger :elephant :wolf :panda})
 (first animals)
 (rest animals)
@@ -128,12 +163,31 @@ b
 ;; no duplicates
 (conj animals :wolf)
 (disj animals :tiger)
+
+(def furry-animals #{:cat :dog :mouse :moose})
+(def big-animals #{:elephant :moose})
+furry-animals
+big-animals
+
+(set/intersection furry-animals big-animals)
+(set/difference furry-animals big-animals)
+(set/difference big-animals animals)
+
 ;; also, sorted-set
 
 
 
 ;; maps
 (def person {:fname "Richard" :lname "Feynman"})
+person
+(dissoc person :fname)
+person
+;; still immutable
+(def person2 (dissoc person :fname))
+person2
+person
+
+
 (first person)
 ;; O(1)
 (count person)
@@ -142,11 +196,14 @@ b
 (get person :fname "missing")
 (get person :mname "missing")
 (:fname person)
+(person :fname)
+(conj person {:foo :bar :a :b})
 (assoc person :field :physics)
 (dissoc person :lname)
 (keys person)
 (vals person)
 (merge person {:field :physics :nationality :american})
+(merge person {:fname "wrong"} {:fname :fred})
 
 ;; vectors are associative
 (get [:a :b :c] 1)
@@ -159,6 +216,7 @@ b
               :books [{:title "Surely you're joking Mr. Feynman!"}]})
 (get-in feynman [:books 0 :title])
 (assoc-in feynman [:books 0 :pages] 200)
+
 ;; anything that implements Comperable can be used as keys
 
 ;; also, sorted-map
@@ -167,20 +225,26 @@ b
 (take 10 (repeat 1))
 (take 10 (range))
 (range 2 7)
+(drop 4 (range))
 (take 10 (cycle [:a :b :c]))
+(conj '(1 2) 3)
+(cons 3 '(1 2))
 (defn fib [a b]
   (cons a (lazy-seq (fib b (+ a b)))))
-(take 10 (fib 1 1))
+(take 34 (fib 1 1))
 
 ;; seq abstraction for walking collections
-(seq [:a :b :c])
-(seq '(:a :b :c))
-(seq {:a 1 :b 2})
+(class (seq [:a :b :c]))
+(class (seq '(:a :b :c)))
+(class (seq {:a 1 :b 2}))
 (seq #{:a :b :c})
 (seq "string")
 (drop 2 [:a :b :c :d])
 (concat [:a :b] [:c :d])
 (interpose :between [:a :b :c])
+(apply str (interpose ", " ["thing" "other" "stuff"]))
+(str 1 2 3)
+(apply str [1 2 3])
 (interleave [:a :b :c] (range))
 (take 10 (filter even? (range)))
 (take 10 (remove even? (range)))
