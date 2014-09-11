@@ -1,4 +1,5 @@
-(ns beginners-night.basic-functions)
+(ns beginners-night.basic-functions
+  (:require [clojure.repl :refer :all]))
 
 ;; download nightcode
 ;; nightcode.info
