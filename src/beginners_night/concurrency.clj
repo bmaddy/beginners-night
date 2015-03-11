@@ -40,6 +40,18 @@
 
 
 
+;;locking
+(defn my-println [& coll]
+  (locking *out*
+    (apply println coll)))
+
+(pmap #(println "this is a line of text" %) (range 10))
+(pmap #(my-println "this is a line of text" %) (range 10))
+
+
+
+
+
 ;;futures
 (def sandwich (future (println "starting to make sandwich...")
                       (Thread/sleep 5000)
@@ -51,16 +63,18 @@
   (println "eat sandwich")
   (println "drive away"))
 
+;; uses a thread pool (#-of-processors + 2)
+;; not for IO
 
 
-;; simulate web requests
+;; simulate long calculations
 (defn calculate [n]
   (let [seconds (rand-int 10)]
     (Thread/sleep (* 1000 seconds)) ;;wait for 1-10 seconds
-    (println "took" seconds "seconds to get result" n)
+    (my-println "took" seconds "seconds to get result" n)
     (str "result " n " (" seconds "s)")))
 
-;;without futures
+;; synchronously
 (let [results (map calculate (range 10))]
   (clojure.pprint/pprint results))
 
@@ -68,14 +82,14 @@
 (let [results (map #(future (calculate %)) (range 10))]
   (clojure.pprint/pprint results)
   (doseq [f results]
-    (println "received:" @f))
+    (my-println "received:" @f))
   (clojure.pprint/pprint results))
 
 
 
 
 
-;;promises
+;; promises
 (def a (promise))
 (def b (promise))
 (future
@@ -85,21 +99,48 @@
 
 
 
-;;vars
 
-;;atoms (synchronous, uncoordinated)
+
+;; atoms (synchronous, uncoordinated)
 (def cnt (atom 0))
-(defn next-val []
-  (swap! cnt inc))
+(swap! cnt inc)
 (deref cnt)
-(next-val)
 @cnt
+(reset! cnt 0)
 
-;;uses: counters, application state, memoization, etc.
 
 
-;;refs (synchronous, coordinated)
-;;idea: mult threads transfer random amounts between bank accounts
+(defn show-retries-with-swap! [thread-num target f]
+  (let [seen-values (atom [])]
+    (swap! target (fn [val]
+                    (if-not (empty? @seen-values)
+                      (my-println "thread" thread-num
+                                  "saw values:" @seen-values
+                                  "retrying with" val))
+                    (swap! seen-values conj val)
+                    (f val)))))
+
+(reset! cnt 0)
+(deref cnt)
+(pmap #(dotimes [n 100]
+         (show-retries-with-swap! % cnt inc))
+      (range 50))
+
+;; uses: counters, application state, memoization, etc.
+
+;; "No man can cross the same river twice,
+;;  because neither the man nor the river are the same."
+;; - Heraclitus
+
+;; The Langoliers by Stephen King
+
+;; hall of mirrors in old video games
+
+
+
+
+;; refs (synchronous, coordinated)
+;; mult threads transfer random amounts between bank accounts
 ;; different thread prints amounts and the sum of all accounts
 ;; show with atom/swap! and ref/alter
 (def acct1 (atom 100))
@@ -127,20 +168,37 @@
 (pmap many-times [rand-xfer rand-xfer rand-xfer print-balances])
 
 
+
+
+
 ;;agents (asynchronous)
 
+;; send-off
+;; each agent gets its own thread with 1 minute keep alive
 
-;;locking
-(defn my-print [a b]
-  (locking *out*
-    (println a b)))
-
-(pmap #(println "this is a line of text" %) (range 10))
-(pmap #(my-print "this is a line of text" %) (range 10))
+;; send
+;; shares thread pool with futures (#-of-processors + 2)
 
 
 
-;;threads
 
 
-;;executors
+;; vars
+
+
+
+
+
+;; threads
+
+
+
+
+
+;; executors
+
+
+
+
+
+;; 4clojure problems
