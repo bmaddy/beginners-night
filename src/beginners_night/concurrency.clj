@@ -57,6 +57,7 @@
                       (Thread/sleep 5000)
                       (println "...finished making sandwich")
                       :sandwich))
+(println "got" (deref sandwich))
 (println "got" @sandwich)
 
 (if (deref sandwich 1000 false)
@@ -70,12 +71,12 @@
 ;; simulate long calculations
 (defn calculate [n]
   (let [seconds (rand-int 10)]
-    (Thread/sleep (* 1000 seconds)) ;;wait for 1-10 seconds
+    (Thread/sleep (* 1000 seconds)) ;;wait for 0-9 seconds
     (my-println "took" seconds "seconds to get result" n)
     (str "result " n " (" seconds "s)")))
 
 ;; synchronously
-(let [results (map calculate (range 10))]
+(let [results (map #(calculate %) (range 10))]
   (clojure.pprint/pprint results))
 
 ;; with futures
@@ -94,9 +95,14 @@
 (def b (promise))
 (future
   (println "result:" (str @a @b)))
-(deliver a "Clojure")
-(deliver b "Bridge")
 
+(deliver b "Bridge")
+(deliver a "Clojure")
+
+;; from different thread
+(deliver b "Bridge")
+(.start (Thread. #(deliver a "Clojure")))
+(future (deliver a "stuff"))
 
 
 
@@ -128,6 +134,8 @@
 
 ;; uses: counters, application state, memoization, etc.
 
+;; river example
+
 ;; "No man can cross the same river twice,
 ;;  because neither the man nor the river are the same."
 ;; - Heraclitus
@@ -158,47 +166,46 @@
 
 (defn print-balances []
   (Thread/sleep 1)
-  (dosync
-   (println @acct1 "\t+ " @acct2 "\t+ " @acct3 "\t= " (+ @acct1 @acct2 @acct3))))
+  (println @acct1 "\t+ " @acct2 "\t+ " @acct3
+           "\t= " (+ @acct1 @acct2 @acct3)))
 
-(defn many-times [f]
-  (dotimes [n 100]
-    (f)))
+(pmap #(dotimes [n 100] (%))
+      [rand-xfer rand-xfer rand-xfer print-balances])
 
-(pmap many-times [rand-xfer rand-xfer rand-xfer print-balances])
-
-
-
+;; setting the value
+(deref acct1)
+(dosync (ref-set acct1 100))
 
 
-;;agents (asynchronous)
 
-;; send-off
-;; each agent gets its own thread with 1 minute keep alive
+
+;;agents (asynchronous, uncoordinated)
+
+;; problems with my-println above
+;; * synchronous
+;; * threads using it have to wait
+
 
 ;; send
 ;; shares thread pool with futures (#-of-processors + 2)
+;; good for cpu intensive stuff
+(def a (agent 0))
+(send a (fn [x]
+          (Thread/sleep 5000)
+          (inc x)))
+(println @a)
+(do (await a)
+    (println @a))
 
+
+;; send-off
+;; unbounded thread pool with 1 minute keep alive
+;; bounded only by memory (millions)
+;; good for IO
+(def printer (agent 0))
+(send-off printer)
 
 
 
 
 ;; vars
-
-
-
-
-
-;; threads
-
-
-
-
-
-;; executors
-
-
-
-
-
-;; 4clojure problems
